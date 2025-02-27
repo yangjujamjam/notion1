@@ -3,7 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <title>예약업무</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    /* style.css */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    textarea {
+        width: 100%;
+        height: 150px;
+        margin-bottom: 10px;
+        resize: none;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-size: 16px;
+    }
+    
+    .button-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+    
+    .left-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .right-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    button:hover {
+        background-color: #f0f0f0;
+        color: #333;
+    }
+    
+    /* 야놀자 버튼 */
+    #btn6 {
+        background: url('https://image6.yanolja.com/cx-ydm/9HprqrV5k1iHWTCo') no-repeat center center;
+        background-size: cover;
+        color: #000;
+        border: 1px solid #ccc;
+        font-weight: bold;
+    }
+    
+    /* 여기어때 버튼 */
+    #btn8 {
+        background: url('data:image/png;base64,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') no-repeat center center;
+    background-size: cover;
+    color: #000;
+    border: 1px solid #ccc;
+    font-weight: bold;
+}
+
+pre {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-top: 10px;
+}
+
+/* 무통장, 숙박, 당일캠핑, 늦은입실, 빠른입실 버튼 */
+#btn1 {
+    background-color: #00bcd4;
+    color: white;
+}
+
+#btn2 {
+    background-color: #4caf50;
+    color: white;
+}
+
+#btn3 {
+    background-color: #ffcc80;
+    color: black;
+}
+
+#btn4 {
+    background-color: #4caf50;
+    color: white;
+}
+
+#btn5 {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* 상단 메뉴 공통 스타일 (사용하지 않으므로 무시) */
+.top-menu {
+    background-color: #eee;
+    margin-bottom: 15px;
+    padding: 10px;
+}
+.top-menu ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
+.top-menu li {
+    display: inline;
+}
+.top-menu a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #333;
+}
+.top-menu a:hover {
+    color: #666;
+}
+  </style>
 </head>
 <body>
 
@@ -85,7 +215,6 @@ function checkQuantityAndDate(text) {
 const formatButtons = document.querySelectorAll('#btn1, #btn2, #btn3, #btn4, #btn5, #btn6, #btn8');
 formatButtons.forEach(button => {
   button.addEventListener('click', () => {
-    // 엑셀 복사 관련 버튼은 제외
     if (button.id !== 'copyBtn' && button.id !== 'excelCopyBtn' && button.id !== 'excelYanolja' && button.id !== 'excelHere') {
       const filteredText = filterText(inputData.value);
       checkQuantityAndDate(filteredText);
