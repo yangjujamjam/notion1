@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>예약관리</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background-color: #f9f9f9;
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 20px; 
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+    }
+    th, td { 
+      border: 1px solid #ccc; 
+      padding: 8px; 
+      text-align: center; 
+    }
+    th { 
+      background-color: #f5f5f5; 
+    }
+    button { 
+      padding: 5px 10px; 
+      margin: 2px; 
+      cursor: pointer; 
+      border: none; 
+      border-radius: 3px;
+      background-color: #4caf50;
+      color: #fff;
+      transition: background 0.3s;
+    }
+    button:hover { 
+      background-color: #43a047; 
+    }
+  </style>
+</head>
+<body>
+
+  <h1>예약관리</h1>
+  
+  <table id="reservationTable">
+    <thead>
+      <tr>
+        <th>A열</th>
+        <th>B열</th>
+        <th>예약경로</th>
+        <th>예약자</th>
+        <th>연락처</th>
+        <th>인원구성</th>
+        <th>예약날짜</th>
+        <th>객실명</th>
+        <th>이용타입</th>
+        <th>옵션</th>
+        <th>수정</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 예시 데이터 (실제 예약번호 등은 시스템에서 삽입됨) -->
+      <tr data-reservation-number="sample123">
+        <td></td>
+        <td></td>
+        <td>네이버확정</td>
+        <td>홍길동(방문자)</td>
+        <td>010-1234-5678</td>
+        <td>대인2</td>
+        <td>2025. 2. 16(일)~2025. 2. 17(월)</td>
+        <td>대형카라반</td>
+        <td>숙박</td>
+        <td>옵션예시</td>
+        <td><button class="modifyBtn">수정</button></td>
+        <td><button class="deleteBtn">삭제</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    // 수정 버튼 클릭 시 해당 행을 편집 모드로 전환하고 저장하는 기능
+    document.querySelectorAll('.modifyBtn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var row = this.closest('tr');
+        // 이미 편집모드라면 (저장 버튼 상태) 저장
+        if (this.textContent === '저장') {
+          for (var i = 2; i <= 9; i++) {
+            var inputElem = row.cells[i].querySelector('input');
+            if (inputElem) {
+              row.cells[i].textContent = inputElem.value;
+            }
+          }
+          this.textContent = '수정';
+        } else {
+          // 편집 모드로 전환: C열부터 J열까지 input으로 변경
+          for (var i = 2; i <= 9; i++) {
+            var currentText = row.cells[i].textContent;
+            row.cells[i].innerHTML = '<input type="text" value="' + currentText + '">';
+          }
+          this.textContent = '저장';
+        }
+      });
+    });
+    
+    // 삭제 버튼 클릭 시 확인 후 행 삭제
+    document.querySelectorAll('.deleteBtn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        if (confirm('정말 삭제하겠습니까?')) {
+          var row = this.closest('tr');
+          row.parentNode.removeChild(row);
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
