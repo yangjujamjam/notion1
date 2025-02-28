@@ -100,6 +100,7 @@
       display: flex;
       gap: 10px;
     }
+    /* 개별 버튼 스타일 */
     #btn1 { background-color: #00bcd4; color: #fff; }
     #btn2 { background-color: #4caf50; color: #fff; }
     #btn3 { background-color: #ffcc80; color: #333; }
@@ -262,9 +263,9 @@
   // ==================== 전역 변수 ====================
   var currentChannel = "직접결제";
 
-  // ==================== 양식 적용 버튼 ====================
-  document.getElementById('fillFormBtn').addEventListener('click', () => {
-    currentChannel = "직접결제";
+  // ==================== 양식 적용 함수 (공용) ====================
+  // 이 함수를 호출하면 폼 값이 inputData에 합쳐집니다.
+  function applyFormToInputData() {
     const reserver = document.getElementById('form-reserver').value;
     const phone = document.getElementById('form-phone').value;
     const site = document.getElementById('form-site').value;
@@ -288,18 +289,21 @@
       "결제금액: " + price;
       
     document.getElementById('inputData').value = combinedText;
+  }
+
+  // ==================== "양식 적용" 버튼 클릭 ====================
+  document.getElementById('fillFormBtn').addEventListener('click', () => {
+    currentChannel = "직접결제";
+    applyFormToInputData(); // 폼 → inputData
   });
 
   // ==================== 구글 스프레드시트로 데이터 전송 ====================
   async function saveToSpreadsheet(data) {
-    // Secret Key 추가
     data.secretKey = "1359";
-
     const scriptUrl = "https://script.google.com/macros/s/AKfycbw0W2UMY-NqhWw9_uSM7XBoqGxuUMm0GHy3P1UAStSXipJudzlpPdf7AWu3aN75GFyG/exec";
     try {
       const res = await fetch(scriptUrl, {
         method: "POST",
-        // 'credentials: "include"' 제거 → "모든 사용자" 접근이므로 쿠키 인증 불필요
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" }
       });
@@ -429,14 +433,20 @@
     warningMessage.style.display = (quantity >= 2 || days >= 2) ? 'inline-block' : 'none';
   }
 
+  // ==================== 버튼1~7 클릭 시 자동으로 폼 → inputData 적용 후 필터/포맷 ====================
   const btnList = document.querySelectorAll('#btn1, #btn2, #btn3, #btn4, #btn5, #btn6, #btn8');
   btnList.forEach(button => {
     button.addEventListener('click', () => {
+      // 1) 채널 설정
       if (button.id === 'btn1') currentChannel = "네이버무통장";
       else if (['btn2','btn3','btn4','btn5'].includes(button.id)) currentChannel = "네이버확정";
       else if (button.id === 'btn6') currentChannel = "야놀자";
       else if (button.id === 'btn8') currentChannel = "여기어때";
 
+      // 2) 폼 → inputData 적용
+      applyFormToInputData();
+
+      // 3) copyBtn, excelCopyBtn 등은 제외
       if (!['copyBtn','excelCopyBtn','excelYanolja','excelHere'].includes(button.id)) {
         const filteredText = filterText(document.getElementById('inputData').value);
         checkQuantityAndDate(filteredText);
@@ -462,54 +472,7 @@
     alert('결과가 복사되었습니다!');
   }
 
-  function filterText(text) {
-    let lines = text.split('\n');
-    const filterKeywords = [
-      '예약번호', '예약유형', '이메일', '예약내역', '유입경로', '예약자입력정보',
-      '( 예 : 대인2, 소인1, 유아1 )', '※종일권,야간권은 입실시간만 맞추어주세요.',
-      '결제예상정보', '결제정보', '결제상태', 'NPay주문번호', '결제수단'
-    ];
-    lines = lines.filter(line =>
-      line.trim() !== '' && !filterKeywords.some(keyword => line.includes(keyword))
-    );
-    const unwantedOptionTexts = [
-      "인원수를 꼭 체크해주세요", "수영장 및 외부시설 안내", "파티룸 이용 전화상담필수",
-      "객실 시설 안내", "당일캠핑 안내", "무통장입금 안내"
-    ];
-    lines = lines.filter(line => !unwantedOptionTexts.some(phrase => line.includes(phrase)));
-
-    const optionsStartIndex = lines.findIndex(line => line.includes('옵션'));
-    const optionsEndIndex = lines.findIndex(line => line.includes('요청사항'));
-    if (optionsStartIndex !== -1 && optionsEndIndex !== -1) {
-      const optionsLines = lines.slice(optionsStartIndex + 1, optionsEndIndex).filter(line => line.trim() !== '');
-      lines.splice(optionsStartIndex + 1, optionsEndIndex - optionsStartIndex - 1, ...optionsLines);
-    }
-
-    const requestStartIndex = lines.findIndex(line => line.includes('요청사항'));
-    const requestEndIndex = lines.findIndex(line => line.includes('유입경로'));
-    if (requestStartIndex !== -1 && requestEndIndex !== -1) {
-      const requestLines = lines.slice(requestStartIndex, requestEndIndex).filter(line => line.trim() !== '');
-      lines.splice(requestStartIndex, requestEndIndex - requestStartIndex, ...requestLines);
-    }
-    return lines.join('\n');
-  }
-
-  function formatText(text, buttonId) {
-    const lines = text.split('\n\n');
-    let checkInTime = "";
-    const siteLine = lines.find(line => line.includes('사이트'));
-    if (siteLine) {
-      const match = siteLine.match(/\[늦은입실\s*(\d+)시\]/);
-      if (match) { checkInTime = match[1]; }
-    }
-    // 아래는 case 분기 (btn1, btn2, btn3, ...)
-    // ... (기존 코드 그대로 유지)
-    // ...
-    // [전체 switch/case 로직 생략, 위 코드 그대로 복사]
-    // ...
-    return text; // default
-  }
-
+  // ==================== 달력 + CalendarList 저장 로직 (필요시) ====================
   document.addEventListener('DOMContentLoaded', () => {
     const calendarSaveButtons = document.querySelectorAll('.buttons button');
     calendarSaveButtons.forEach(button => {
