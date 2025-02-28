@@ -98,7 +98,11 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-    /* 버튼 색상 */
+    .right-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    /* 개별 버튼 스타일 */
     #btn1 { background-color: #00bcd4; color: #fff; }
     #btn2 { background-color: #4caf50; color: #fff; }
     #btn3 { background-color: #ffcc80; color: #333; }
@@ -199,7 +203,8 @@
   <button id="btn6">예약확정문자(야놀자)</button>
   <button id="btn8">예약확정문자(여기어때)</button>
   <div class="right-buttons">
-    <!-- 엑셀 복사 버튼 대신, 스프레드시트 저장 버튼 -->
+    <!-- 추가: 결과 복사 버튼 -->
+    <button id="copyBtn">결과 복사</button>
     <button id="excelCopyBtn">구글 스프레드시트 저장(네이버)</button>
     <button id="excelYanolja">구글 스프레드시트 저장(야놀자)</button>
     <button id="excelHere">구글 스프레드시트 저장(여기어때)</button>
@@ -232,7 +237,6 @@
       instance.calendarContainer.style.position = "fixed";
       instance.calendarContainer.style.zIndex = "99999";
       let left = rect.left;
-      // 재렌더링 후 실제 달력 너비 확인
       setTimeout(() => {
         const calWidth = instance.calendarContainer.offsetWidth;
         const viewportWidth = window.innerWidth;
@@ -288,7 +292,7 @@
     document.getElementById('inputData').value = combinedText;
   });
   
-  // 업데이트: 변환 버튼 클릭 시 currentChannel 설정
+  // 변환 버튼 이벤트: 각 버튼 클릭 시 채널 설정 및 결과 표시
   const formatButtons = document.querySelectorAll('#btn1, #btn2, #btn3, #btn4, #btn5, #btn6, #btn8');
   formatButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -297,6 +301,7 @@
       else if(button.id === 'btn6') currentChannel = "야놀자";
       else if(button.id === 'btn8') currentChannel = "여기어때";
       
+      // 변환 처리 (copyBtn, 엑셀 저장 버튼 제외)
       if (!['copyBtn','excelCopyBtn','excelYanolja','excelHere'].includes(button.id)) {
         const filteredText = filterText(document.getElementById('inputData').value);
         checkQuantityAndDate(filteredText);
@@ -306,6 +311,7 @@
     });
   });
   
+  // 결과 복사 버튼 이벤트
   if(document.getElementById('copyBtn')){
     document.getElementById('copyBtn').addEventListener('click', () => {
       copyToClipboard(document.getElementById('outputData').textContent);
@@ -622,7 +628,7 @@ https://litt.ly/jamjam_bbq
 - (기준 인원: 대인2, 이용타입: 숙박)`;
   }
   
-  // 함수: 결합 텍스트를 파싱하여 객체 반환
+  // 결합 텍스트를 파싱하여 객체 반환
   function parseCombinedText() {
     const lines = document.getElementById('inputData').value.split('\n');
     const data = {};
@@ -637,10 +643,8 @@ https://litt.ly/jamjam_bbq
     return data;
   }
   
-  // 예약날짜, 객실명, 이용타입 등을 결정하는 보조 함수 (간단 예시)
+  // 보조 함수: 예약날짜, 객실명, 이용타입 등을 결정 (간단 예시)
   function formatReservationDate(channel, rawDate) {
-    // 여기에 실제 날짜 변환 로직을 구현 (예: yyyy. m. d.(요일)~yyyy. m. d.(요일))
-    // 예시에서는 그대로 리턴
     return rawDate;
   }
   function extractRoomName(channel, dataObj) {
@@ -668,7 +672,7 @@ https://litt.ly/jamjam_bbq
     return "";
   }
   
-  // 함수: 예약 데이터를 객체로 구성
+  // 예약 데이터를 객체로 구성
   function getReservationData() {
     let dataObj = parseCombinedText();
     return {
@@ -683,9 +687,9 @@ https://litt.ly/jamjam_bbq
     };
   }
   
-  // 함수: Google 스프레드시트로 데이터 전송 (Google Apps Script 웹앱 URL 사용)
+  // Google 스프레드시트로 데이터 전송 (Apps Script 웹앱 URL)
   async function saveToSpreadsheet(data) {
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbw_G9nygKXonsW7iwgzQvCPglqKoyLGCGluDWOotWxNv_9ZTDXnb92QqtQggvMp3Tk0/exec"; // 실제 배포된 웹앱 URL로 교체하세요.
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbw_G9nygKXonsW7iwgzQvCPglqKoyLGCGluDWOotWxNv_9ZTDXnb92QqtQggvMp3Tk0/exec";
     try {
       const res = await fetch(scriptUrl, {
         method: "POST",
@@ -706,7 +710,7 @@ https://litt.ly/jamjam_bbq
   
   // 엑셀 복사(구글 스프레드시트 저장) 버튼 이벤트
   document.getElementById('excelCopyBtn').addEventListener('click', () => {
-    currentChannel = "네이버무통장"; // 네이버 관련 버튼
+    currentChannel = "네이버무통장";
     const data = getReservationData();
     saveToSpreadsheet(data);
   });
@@ -760,8 +764,8 @@ https://litt.ly/jamjam_bbq
     warningMessage.style.display = (quantity >= 2 || days >= 2) ? 'inline-block' : 'none';
   }
   
-  const formatButtons = document.querySelectorAll('#btn1, #btn2, #btn3, #btn4, #btn5, #btn6, #btn8');
-  formatButtons.forEach(button => {
+  const btnList = document.querySelectorAll('#btn1, #btn2, #btn3, #btn4, #btn5, #btn6, #btn8');
+  btnList.forEach(button => {
     button.addEventListener('click', () => {
       if (button.id === 'btn1') currentChannel = "네이버무통장";
       else if (['btn2','btn3','btn4','btn5'].includes(button.id)) currentChannel = "네이버확정";
@@ -779,7 +783,7 @@ https://litt.ly/jamjam_bbq
   
   if(copyBtn){
     copyBtn.addEventListener('click', () => {
-      copyToClipboard(document.getElementById('outputData').textContent);
+      copyToClipboard(outputData.textContent);
     });
   }
   
